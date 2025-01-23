@@ -1,0 +1,29 @@
+{
+    "name": "DelShorts",
+    "description": "Delete YoutubeShorts on page",
+    "version": "1.0",
+    "manifest_version": 3,
+
+    "icons": {
+        "16":"media/icons/16i.png",
+        "32":"media/icons/32i.png",
+        "48":"media/icons/48i.png",
+        "128":"media/icons/128i.png"
+    },
+    "action": {
+        "default_title": "Click to remove Shorts",
+        "default_popup": "delete.html"
+    },
+    "permissions": [
+        "scripting"
+    ],
+    "host_permissions": [
+        "https://www.youtube.com/*"
+    ],
+    "content_scripts": [
+        {
+        "matches": ["https://www.youtube.com/*"],
+        "js": ["skript_refresh.js"]
+        }
+    ]
+}

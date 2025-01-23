@@ -1,0 +1,9 @@
+,
+        {
+        "matches": ["https://www.youtube.com/"],
+        "js": ["skript_delMain.js"]
+        },
+        {
+        "matches":["https://www.youtube.com/watch*"],
+        "js": ["skript_delWatch.js"]
+        }
