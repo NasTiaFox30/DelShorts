@@ -40,4 +40,11 @@
     // setInterval(function () {
     //     removeShortsSheets();
     //     console.log('Контрольне очищення кожні 10 секунд');
-    // }, 10000);
+// }, 10000);
+    
+
+// //Перевірка чи працює старий спостерігач - вимкнення якщо ТАК
+        // if (observer.observe) {
+        //     observer.disconnect();
+        //     console.log("ВІДКЛЮЧЕНО");
+        // }

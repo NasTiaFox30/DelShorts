@@ -1,44 +1,71 @@
 console.log("Скрипт refres.js додано успішно!");
 
+//відкладений Час: 
+const _timeDelay = 3000;
+const _timeDelay2 = 2000;
+
+
+
 // Виклик при завантаженні сторінки
 monitorUrlChanges();
 detectPageChange();
 
 
 
+
 function detectPageChange() {
     const currentUrl = window.location.href;
 
-    // Логіка для головної сторінки
+    // Логіка для сторінки Головна  
     if (currentUrl === "https://www.youtube.com/") {
-
-        console.log(">>На головній сторінці");
+        console.log(">>На сторінці Головна");
         
-        setTimeout(runHomePageScript, 3000);
-        // runHomePageScript(); // Виклик скрипту для головної сторінки
-        setTimeout(runPanelShortsDelete, 2000);
+        setTimeout(runHomePageScript, _timeDelay);
+        setTimeout(runPanelShortsDelete, _timeDelay2);
 
     }
 
-    // Логіка для сторінок відео
-    else if (currentUrl.startsWith("https://www.youtube.com/watch")) {
-        console.log(">>На сторінці відео");
+    //логіка для сторінки Підписок
+    else if (currentUrl.startsWith("https://www.youtube.com/feed/subscriptions")) {
+        console.log(">>На сторінці Підписки");
+
+        setTimeout(runHomePageScript, _timeDelay);
+        setTimeout(runPanelShortsDelete, _timeDelay2);
         
-        setTimeout(runVideoPageScript, 3000);
-        // runVideoPageScript(); // Виклик скрипту для сторінки відео
-        setTimeout(runPanelShortsDelete, 2000);
+    }
+        
+    //логіка для сторінки Пошуку
+    else if (currentUrl.startsWith("https://www.youtube.com/results?search_query=")) {
+        console.log(">>На сторінці Пошуку");
+
+        setTimeout(runSearchPageScript, _timeDelay);
+        setTimeout(runPanelShortsDelete, _timeDelay2);
+        
+    }
+
+    // Логіка для сторінок Відео
+    else if (currentUrl.startsWith("https://www.youtube.com/watch")) {
+        console.log(">>На сторінці Відео");
+        
+        setTimeout(runVideoPageScript, _timeDelay);
+        setTimeout(runPanelShortsDelete, _timeDelay2);
     }
 }
 
 // Відстеження змін URL
 function monitorUrlChanges() {
+    console.log('Зміна URL сторінки...');
     let previousUrl = window.location.href;
 
     const observer = new MutationObserver(() => {
         const currentUrl = window.location.href;
         if (currentUrl !== previousUrl) {
             previousUrl = currentUrl;
+            console.clear();
             setTimeout(detectPageChange, 100); // Виклик логіки для оновленої URL
+        }
+        else {
+            console.log(' - та сама сторінка - ');
         }
     });
 
@@ -49,40 +76,56 @@ function monitorUrlChanges() {
 
 
 //FUNCTIONS:
+let observersArray = new Array();
+
 
 // // // delMain
 function runHomePageScript() {
     console.log("Скрипт delMain додано успішно!");
+
+    console.log(`У фоні працюють Спостерігачі - ${observersArray.length}`);
+
 
     // Вибір елемента, який буде спостерігатися (головний контейнер)    
     const targetBlock1 = document.querySelector('#contents.style-scope.ytd-rich-grid-renderer');
     // const targetBlock1 = document.querySelector('#primary.style-scope.ytd-two-column-browse-results-renderer'); 
 
     if (targetBlock1) {
-        removeShortsBlocks(targetBlock1);
+        if (observersArray.length === 0 ) {
+            removeShortsBlocks(targetBlock1);
 
-        //Спостерігач:
-        ////
-        // Налаштування спостереження - дочірні елементи)
-        const config = { childList: true };
+            //Спостерігач:
+            ////
+            // Налаштування спостереження - дочірні елементи)
+            const config = { childList: true };
 
-        // Callback для виконання, коли відбуваються зміни
-        const callback = function (mutationsList, observer) {
-            for (const mutation of mutationsList) {
-                if (mutation.type === 'childList') {
-                    console.log('Контент оновлено! (Головна)');
-                    removeShortsBlocks(targetBlock1);
+            // Callback для виконання, коли відбуваються зміни
+            const callback = function (mutationsList, observer) {
+                for (const mutation of mutationsList) {
+                    if (mutation.type === 'childList') {
+                        console.log('Контент оновлено! (Головна)');
+                        removeShortsBlocks(targetBlock1);
+                    }
                 }
-            }
-        };
-    
-        // Створення спостерігача
-        const observer = new MutationObserver(callback);
-        // Старт:
-        observer.observe(targetBlock1, config);
+            };
+        
+            // Створення спостерігача
+            const observer = new MutationObserver(callback);
+            // Старт:
+            observer.observe(targetBlock1, config);
 
-        console.log('Спостереження запущено...');
-        ////
+            console.log('Спостереження запущено...');
+            observersArray.push(observer);
+            console.log(`Кількість активних спостерігачів ${observersArray.length}`);
+            ////
+        }
+        else {
+            console.log(`У фоні працюють Спостерігачі! - ${observersArray.length}`);
+            observersArray.shift();   //викидає першого Спостерігача
+            console.log(`Очищено - ${observersArray.length}`);
+            removeShortsBlocks(targetBlock1);
+            setTimeout(runHomePageScript, 200);
+        }
     }
     else {
         console.log('Х Головний блок не знайдено Х');
@@ -92,9 +135,11 @@ function runHomePageScript() {
 function removeShortsBlocks(targetBlock){
     // Знаходимо всі елементи <ytd-rich-section-renderer>
     const reelsBlocks = targetBlock.querySelectorAll('ytd-rich-section-renderer.style-scope.ytd-rich-grid-renderer');
-    console.log(`Знайдено блоків: ${reelsBlocks.length}`);
+    
     //Перевірка та видалення
     if (reelsBlocks) {
+        console.log(`Знайдено блоків: ${reelsBlocks.length}`);
+
         // Проходимо по кожному знайденому елементу
         reelsBlocks.forEach(block => {
             // Перевіряємо, чи містить дочірній блок <ytd-rich-shelf-renderer> атрибут is-shorts
@@ -112,29 +157,45 @@ function removeShortsBlocks(targetBlock){
 
 
 
-// // //delWatch
+
+// // //delWatch & delSearch
+function runSearchPageScript() {
+    console.log("Скрипт delSearch додано успішно!");
+    
+    // Вибір елемента, який буде спостерігатися (головний контейнер)
+    const tarBlock1 = document.querySelector('#contents.style-scope.ytd-section-list-renderer');
+    // Блок для пошуку дочірніх блоків до видалення
+    const tarBlock2 = document.querySelector('#container.style-scope.ytd-search');
+    runVideoORSearchPageScript(tarBlock1, tarBlock2);
+}
 function runVideoPageScript() {
     console.log("Скрипт delWatch додано успішно!");
 
     // Вибір елемента, який буде спостерігатися (головний контейнер)
-    const targetBlock2 = document.querySelector('#contents.style-scope.ytd-item-section-renderer.style-scope.ytd-item-section-renderer');
-    // const targetBlock2 = document.querySelector('#secondary.style-scope.ytd-watch-flexy');
+    const tarBlock1 = document.querySelector('#contents.style-scope.ytd-item-section-renderer.style-scope.ytd-item-section-renderer');
+    // Блок для пошуку дочірніх блоків до видалення
+    const tarBlock2 = document.querySelector('#secondary.style-scope.ytd-watch-flexy');
+    runVideoORSearchPageScript(tarBlock1, tarBlock2);
+}
+function runVideoORSearchPageScript(target1, target2) {
+    console.log("Скрипт delWatchORSearch додано успішно!");
+
     // const nameReelsBlocks = "ytd-reel-shelf-renderer.style-scope.ytd-item-section-renderer[modern-typography]";
 
-    if (targetBlock2) {    
-        checkAndRemoveShortsBlocksWatch(targetBlock2);
+    if (target2 && target1) {    
+        checkAndRemoveShortsBlocksWatch(target2);
 
         //Спостерігач:
         ////
         // Налаштування спостереження - дочірні елементи)
-        const config = { childList: true};
+        const config = { childList: true, subtree: true};
 
         //Callback для виконання, коли відбуваються зміни
         const callback = function(mutationsList, observer) {
             for (const mutation of mutationsList) {
                 if (mutation.type === 'childList') {
                     console.log('Контент оновлено! (Перегляд)');
-                    checkAndRemoveShortsBlocksWatch(targetBlock2);
+                    checkAndRemoveShortsBlocksWatch(target2);
                 }
             }
         };
@@ -142,7 +203,7 @@ function runVideoPageScript() {
         // Створення спостерігача
         const observer = new MutationObserver(callback);
         // Старт:
-        observer.observe(targetBlock2, config);
+        observer.observe(target1, config);
 
         console.log('Спостереження запущено...');
         ////
@@ -165,7 +226,7 @@ function checkAndRemoveShortsBlocksWatch(targetBlock) {
         });
     }
     else {
-        console.log('X Блоки не знaйдено X');
+        console.log('X Блоки не знaйдено ----X');
     }
 }
 
